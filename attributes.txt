@@ -1,0 +1,7 @@
+panel panel--2x panel--kind-details panel--visible
+panel__content
+
+panel__body
+    detail-courseinfo
+        dtl-course-code
+    detail-title
