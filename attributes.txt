@@ -4,4 +4,5 @@ panel__content
 panel__body
     detail-courseinfo
         dtl-course-code
+        dtl-section
     detail-title
