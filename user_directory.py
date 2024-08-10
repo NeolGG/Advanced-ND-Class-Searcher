@@ -10,10 +10,13 @@ url = "https://api.identity.nd.edu/api/v1/user/_search?q="
 json_folder = "jsons"
 
 def fetch_data(query: str):
+    '''
+    queries data from public api using query string
+    
+    returns: data in json format, dictionary
+    '''
     api_query = quote(query)
     query_url = url + api_query
-    
-    print(query_url)
     
     response = requests.get(query_url)
     if response.status_code != 200:
@@ -52,8 +55,18 @@ def save_data(query:str, data: list):
     
     q_query = quote(query)
     
-    with open(f'{json_folder}/response{count}_{q_query}.json', 'w') as file:
+    with open(f'{json_folder}/user_response{count}_{q_query}.json', 'w') as file:
         json.dump(data, file, indent=4)
+        
+def full_user_search(query: str) ->list:
+    '''
+    searches ND user directory and returns a list of users 
+    '''
+    data = fetch_data(query)
+    save_data(query,data)
+    users = parse_user_data(data)
+    
+    return users
 
 if __name__ == "__main__":
     query = "sylvia"

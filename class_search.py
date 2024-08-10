@@ -3,10 +3,10 @@
 import requests
 import json
 from urllib.parse import quote
+import os
 
-
-# Define the URL for the request
 url = "https://classsearch.nd.edu/api/?page=fose&route=search&camp=M&stat=A%2CF"
+json_folder = "jsons"
 
 def fetch_data(query: str):
     api_query = quote(query)
@@ -56,12 +56,35 @@ def parse_course_data(json_data: list) -> list:
 
     return courses
 
+def save_data(query:str, data: list):
+    if not os.path.exists(json_folder) or not os.path.isdir(json_folder):
+        os.mkdir(json_folder)
+        
+    count = len(os.listdir(json_folder))
+    
+    q_query = quote(query)
+    
+    with open(f'{json_folder}/classsearch_response{count}_{q_query}.json', 'w') as file:
+        json.dump(data, file, indent=4)
+        
+def full_course_search(query: str) -> list:
+    '''
+    searches class search database and returns a list of courses 
+    '''
+    data = fetch_data(query)
+    save_data(query,data)
+    users = parse_course_data(data)
+    
+    return users
+
 if __name__ == "__main__":
     query = "joanna"
     
     data = fetch_data(query)
     
     courses = parse_course_data(data)
+    
+    save_data(query,data)
     
     print(courses)
     
