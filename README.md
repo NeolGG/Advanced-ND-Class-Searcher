@@ -39,5 +39,5 @@ ALSO, this application has the 'find a room' feature, which is intended for notr
     One of the main reasons for making this tool was because many of the library rooms are always reserved and i think it would be convenient 
     to have a quick tool to find a unused room in one of the academic buildings.
 
-Lastly, this isn't a ONLY OSINT tool but also a wrapper for a lot of the hidden public APIs for the user list, course list, and course details provided by Notre Dame/
+Lastly, this isn't ONLY a OSINT tool but also a wrapper for a lot of the hidden public APIs for the user list, course list, and course details provided by Notre Dame.
 
