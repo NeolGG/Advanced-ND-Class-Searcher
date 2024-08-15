@@ -4,12 +4,17 @@ import requests
 from urllib.parse import quote
 import json
 import os
+import time
+
+from modules.colors import Colors
 
 
 url = "https://api.identity.nd.edu/api/v1/user/_search?q="
-json_folder = "jsons"
+json_folder = "jsons/users"
+user_json_file = None
 
-def fetch_data(query: str):
+
+def _fetch_data(query: str):
     '''
     queries data from public api using query string
     
@@ -26,7 +31,7 @@ def fetch_data(query: str):
     
     return data
 
-def parse_user_data(json_data: list) -> list:
+def _parse_user_data(json_data: list) -> list:
     '''
     looks through queried data and returns a list of users found
     
@@ -43,36 +48,109 @@ def parse_user_data(json_data: list) -> list:
         
     for d in json_data:
         classification = ": " + d["ndStudentClassification"] if d.get("ndStudentClassification") is not None else ""
-        users.append(f"{d["firstName"]} {d["lastName"]} - {d["email"]} ({d["ndPrimaryAffiliation"]}{classification})")
+        unique_key = d["email"]
+        users.append((unique_key,f"{d["firstName"]} {d["lastName"]} - {d["email"]} ({d["ndPrimaryAffiliation"]}{classification})"))
         
     return users
         
-def save_data(query:str, data: list):
-    if not os.path.exists(json_folder) or not os.path.isdir(json_folder):
-        os.mkdir(json_folder)
+def _save_data(query:str, data: list, subfolder:str):
+    if subfolder.endswith('/'):
+        subfolder = subfolder[:-1]
+    
+    destination = json_folder + '/' + subfolder
+    
+    if not os.path.exists(destination):
+        os.makedirs(destination)
         
-    count = len(os.listdir(json_folder))
+    t = time.time()
     
     q_query = quote(query)
+    global class_json_file
+    class_json_file = f'{destination}/user{t}_{q_query}.json'
     
-    with open(f'{json_folder}/user_response{count}_{q_query}.json', 'w') as file:
+    with open(class_json_file, 'w') as file:
         json.dump(data, file, indent=4)
         
-def full_user_search(query: str) ->list:
+def user_search(query: str) ->list:
     '''
     searches ND user directory and returns a list of users 
     '''
-    data = fetch_data(query)
-    save_data(query,data)
-    users = parse_user_data(data)
+    data = _fetch_data(query)
+    _save_data(query,data,"user_search")
+    users = _parse_user_data(data)
     
     return users
 
+def detailed_user(key:str):
+    '''
+    fetches detailed user information
+    '''
+    
+    expand = list()
+    
+    def _display_json(data): 
+        for key, value in data.items():
+            if isinstance(value, dict,) and value: # if value is dict 
+                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} pairs{Colors.ENDC}"
+                print(string)
+                expand.append((string,value))
+            elif isinstance(value, list) and value: #if value is list
+                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} items{Colors.ENDC}"
+                print(string)
+                expand.append((string,value))     
+            elif value is not None:
+                print(f"{Colors.BOLD}{key}:{Colors.ENDC} {Colors.OKGREEN}{value}{Colors.ENDC}")
+                    
+    def _walk(obj, level=0):
+        """
+        Recursively walks through a list or dictionary, printing each non-None item
+        with the correct indentation.
+        
+        :param obj: The object to walk through (list or dict).
+        :param level: The current level of indentation (used internally).
+        """
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                print('\t' * level + f"{Colors.BOLD}{Colors.OKCYAN}{key}:{Colors.ENDC} ", end="")
+                if isinstance(value, (dict,list)):
+                    print()
+                    _walk(value,level+1)
+                else:
+                    print(f"{Colors.BOLD}{value}{Colors.ENDC}")
+        elif isinstance(obj, list):
+            for index, item in enumerate(obj):
+                print('\t' * level + f"{Colors.BOLD}{Colors.OKCYAN}[{index}]:{Colors.ENDC} ",end="")
+                if isinstance(item, (dict,list)):
+                    print()
+                    _walk(item, level + 1)
+                else:
+                    print(f"{Colors.BOLD}{item}{Colors.ENDC}")
+        else:
+            print('\t' * level + str(obj))
+                
+    data = _fetch_data(key)
+    _save_data(key,data,"detailed")
+    
+    _display_json(data[0])
+    
+    length = len(expand)
+    expand.append((f"{Colors.BOLD}[{length}] Finish{Colors.ENDC}",None))
+    
+    while True:
+        print()
+        for e in expand:
+            print(e[0])
+            
+        try:
+            index = int(input("\nChoose one of the blue options: "))
+            if index == len(expand) - 1:
+                return
+            elif 0 <= index < len(expand):
+                _walk(expand[index][1])
+            else:
+                print(f"Please enter a number between 0 and {len(expand) - 1}.")
+        except ValueError:
+            print("Invalid input. Please enter a valid integer.")
+
 if __name__ == "__main__":
-    query = "sylvia"
-    
-    data = fetch_data(query)
-    
-    user_list = parse_user_data(data)
-    
-    save_data(query, data)
+    pass
