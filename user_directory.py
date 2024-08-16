@@ -136,7 +136,7 @@ def detailed_user(netid:str):
     length = len(expand)
     expand.append((f"{Colors.BOLD}[{length}] RETURN{Colors.ENDC}",None))
     
-    while True:
+    while (1):
         print()
         for e in expand:
             print(e[0])

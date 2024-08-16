@@ -257,7 +257,7 @@ def detailed_course(key_tuple: tuple) -> dict:
     length = len(expand)
     expand.append((f"{Colors.BOLD}[{length}] RETURN{Colors.ENDC}",None))
     
-    while True:
+    while (1):
         print()
         for e in expand:
             print(e[0])
