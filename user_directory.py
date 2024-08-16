@@ -8,11 +8,11 @@ import time
 
 from modules.colors import Colors
 
+__all__ = ["user_search","detailed_user"]
 
 url = "https://api.identity.nd.edu/api/v1/user/_search?q="
 json_folder = "jsons/users"
 user_json_file = None
-
 
 def _fetch_data(query: str):
     '''
@@ -26,10 +26,8 @@ def _fetch_data(query: str):
     response = requests.get(query_url)
     if response.status_code != 200:
         raise requests.exceptions.HTTPError(f"HTTPError: {response.status_code} - {response.reason}")
-        
-    data = response.json()
     
-    return data
+    return response.json()
 
 def _parse_user_data(json_data: list) -> list:
     '''
@@ -65,10 +63,10 @@ def _save_data(query:str, data: list, subfolder:str):
     t = time.time()
     
     q_query = quote(query)
-    global class_json_file
-    class_json_file = f'{destination}/user{t}_{q_query}.json'
+    global user_json_file
+    user_json_file = f'{destination}/user{t}_{q_query}.json'
     
-    with open(class_json_file, 'w') as file:
+    with open(user_json_file, 'w') as file:
         json.dump(data, file, indent=4)
         
 def user_search(query: str) ->list:
@@ -77,25 +75,24 @@ def user_search(query: str) ->list:
     '''
     data = _fetch_data(query)
     _save_data(query,data,"user_search")
-    users = _parse_user_data(data)
     
-    return users
+    return _parse_user_data(data)
 
-def detailed_user(key:str):
+def detailed_user(netid:str):
     '''
     fetches detailed user information
     '''
     
     expand = list()
     
-    def _display_json(data): 
+    def _display_json(data: dict): 
         for key, value in data.items():
             if isinstance(value, dict,) and value: # if value is dict 
-                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} pairs{Colors.ENDC}"
+                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} pair(s){Colors.ENDC}"
                 print(string)
                 expand.append((string,value))
             elif isinstance(value, list) and value: #if value is list
-                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} items{Colors.ENDC}"
+                string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} item(s){Colors.ENDC}"
                 print(string)
                 expand.append((string,value))     
             elif value is not None:
@@ -109,6 +106,7 @@ def detailed_user(key:str):
         :param obj: The object to walk through (list or dict).
         :param level: The current level of indentation (used internally).
         """
+        # if dict
         if isinstance(obj, dict):
             for key, value in obj.items():
                 print('\t' * level + f"{Colors.BOLD}{Colors.OKCYAN}{key}:{Colors.ENDC} ", end="")
@@ -117,6 +115,7 @@ def detailed_user(key:str):
                     _walk(value,level+1)
                 else:
                     print(f"{Colors.BOLD}{value}{Colors.ENDC}")
+        # if list
         elif isinstance(obj, list):
             for index, item in enumerate(obj):
                 print('\t' * level + f"{Colors.BOLD}{Colors.OKCYAN}[{index}]:{Colors.ENDC} ",end="")
@@ -125,16 +124,17 @@ def detailed_user(key:str):
                     _walk(item, level + 1)
                 else:
                     print(f"{Colors.BOLD}{item}{Colors.ENDC}")
+        # if something else
         else:
             print('\t' * level + str(obj))
                 
-    data = _fetch_data(key)
-    _save_data(key,data,"detailed")
+    data = _fetch_data(netid)
+    _save_data(netid,data,"detailed")
     
     _display_json(data[0])
     
     length = len(expand)
-    expand.append((f"{Colors.BOLD}[{length}] Finish{Colors.ENDC}",None))
+    expand.append((f"{Colors.BOLD}[{length}] RETURN{Colors.ENDC}",None))
     
     while True:
         print()
@@ -142,7 +142,7 @@ def detailed_user(key:str):
             print(e[0])
             
         try:
-            index = int(input("\nChoose one of the blue options: "))
+            index = int(input("\nChoose one of the options: "))
             if index == len(expand) - 1:
                 return
             elif 0 <= index < len(expand):
