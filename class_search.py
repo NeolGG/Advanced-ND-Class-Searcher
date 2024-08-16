@@ -146,15 +146,25 @@ def _clean_sections(raw:str) -> list:
     return sections
 
 def _clean_cannot_have_taken(raw:str) -> list:
+    if not raw:
+        return ""
     raw_clean = _remove_html_tags(raw)
     raw_clean = html.unescape(raw_clean).strip()
-    return raw_clean.split('\n\n\n')
+    raw_clean = raw_clean.split('\n\n\n')
+    
+    return raw_clean
 
 def _clean_attributes(raw:str):
+    if not raw:
+        return ""
+    
     raw_clean = _remove_html_tags(raw)
     raw_clean = html.unescape(raw_clean).strip()
     raw_clean = raw_clean.replace(')',')^')
-    return raw_clean.split('^')[:-1]
+    raw_clean = raw_clean.split('^')[:-1]
+    
+
+    return raw_clean
 
 def _clean_inner_meeting_times(raw):
     raw_clean = _remove_html_tags(raw)
@@ -193,7 +203,7 @@ def detailed_course(key_tuple: tuple) -> dict:
                 string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} item(s){Colors.ENDC}"
                 print(string)
                 expand.append((string,value))     
-            elif value is not None:
+            elif value:
                 if isinstance(value, str): # cleaning if string only
                     v = _remove_html_tags(value)
                     v = html.unescape(v).strip()

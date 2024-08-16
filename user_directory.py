@@ -95,7 +95,7 @@ def detailed_user(netid:str):
                 string = f"{Colors.BOLD}{Colors.OKCYAN}[{len(expand)}] {key}: {len(value)} item(s){Colors.ENDC}"
                 print(string)
                 expand.append((string,value))     
-            elif value is not None:
+            elif value:
                 print(f"{Colors.BOLD}{key}:{Colors.ENDC} {Colors.OKGREEN}{value}{Colors.ENDC}")
                     
     def _walk(obj, level=0):
